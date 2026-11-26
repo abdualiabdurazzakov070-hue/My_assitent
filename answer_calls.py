@@ -1,11 +1,14 @@
 """
-answer_calls.py: kiruvchi Telegram qo'ng'iroqlarini avtomatik ko'taruvchi 24/7 AI yordamchi.
+answer_calls.py: kiruvchi Telegram qo'ng'iroqlarini avtomatik ko'taruvchi 24/7 AI yordamchi (Web Service compatible).
 """
 import argparse
 import asyncio
 import sys
 import time
 from pathlib import Path
+import http.server
+import socketserver
+import threading
 
 import edge_tts
 from dotenv import load_dotenv
@@ -52,6 +55,24 @@ async def make_tts(text: str, voice_key: str, out_path: Path) -> float:
     voice = VOICES.get(voice_key, voice_key)
     await edge_tts.Communicate(text, voice).save(str(out_path))
     return float(MP3(str(out_path)).info.length)
+
+
+def run_health_server():
+    port = int(os.getenv("PORT", "10000"))
+    class HealthHandler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-type", "text/plain")
+            self.end_headers()
+            self.wfile.write(b"Bot is running 24/7!")
+        def log_message(self, format, *args):
+            pass
+    try:
+        with socketserver.TCPServer(("", port), HealthHandler) as httpd:
+            print(f"Health server listening on port {port}", flush=True)
+            httpd.serve_forever()
+    except Exception as e:
+        print(f"Health server error: {e}", flush=True)
 
 
 async def run_bot(a):
@@ -210,7 +231,7 @@ async def run_bot(a):
         if ev:
             ev.set()
 
-    await app.start()
+    await app.app_start() if hasattr(app, "app_start") else await app.start()
     try:
         await asyncio.Event().wait()
     except (KeyboardInterrupt, asyncio.CancelledError):
@@ -235,13 +256,17 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="24/7 Kiruvchi Telegram qo'ng'iroqlarini ko'taruvchi AI yordamchi")
     p.add_argument(
         "--text",
-        default="Assalomu alaykum! Men Abdualining ai assistent yordamchisiman. Hozir Abduali qongiroqni kotara ololma gani uchun  men kotardim , iltimos xabaringizni ovoz bilan qoldiring, men albatta yetkazaman!",
+        default="Assalomu alaykum! Men Abdualining ai assistent yordamchisiman. Hozir Abduali qongiroqni kotara olamagani uchun men kotardim , iltimos xabaringizni ovoz bilan qoldiring, men albatta yetkazaman!",
     )
     p.add_argument("--bye", default="Rahmat, xabaringizni saqlab oldim! Xayr!")
     p.add_argument("--voice", default="uz-m")
     p.add_argument("--delay", type=int, default=10, help="O'zingiz ko'tarishingiz uchun kutish (soniya)")
     p.add_argument("--listen", type=int, default=15, help="Javobni yozib olish davomiyligi (soniya)")
     args = p.parse_args()
+
+    # Start HTTP health check server in background thread for Render Web Service
+    threading.Thread(target=run_health_server, daemon=True).start()
+
     try:
         asyncio.run(main_loop(args))
     except KeyboardInterrupt:

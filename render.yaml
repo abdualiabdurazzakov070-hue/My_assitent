@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: tg-call-ai-bot
     env: docker
     region: frankfurt
