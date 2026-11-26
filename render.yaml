@@ -1,0 +1,13 @@
+services:
+  - type: worker
+    name: tg-call-ai-bot
+    env: docker
+    region: frankfurt
+    plan: free
+    envVars:
+      - key: TG_API_ID
+        sync: false
+      - key: TG_API_HASH
+        sync: false
+      - key: TG_SESSION_STRING
+        sync: false
