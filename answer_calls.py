@@ -256,7 +256,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="24/7 Kiruvchi Telegram qo'ng'iroqlarini ko'taruvchi AI yordamchi")
     p.add_argument(
         "--text",
-        default="Assalomu alaykum! Men Abdualining ai assistent yordamchisiman. Hozir Abduali qongiroqni kotara olamagani uchun men kotardim , iltimos xabaringizni ovoz bilan qoldiring, men albatta yetkazaman!",
+        default="Assalomu alaykum! Men Abdualining AI assistent yordamchisiman. Hozir Abduali qo‘ng‘iroqni ko‘tara olmagani uchun men ko‘tardim. Iltimos, xabaringizni ovoz bilan qoldiring, men albatta yetkazaman!",
     )
     p.add_argument("--bye", default="Rahmat, xabaringizni saqlab oldim! Xayr!")
     p.add_argument("--voice", default="uz-m")
